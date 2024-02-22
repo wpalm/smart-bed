@@ -1,0 +1,10 @@
+{
+  "domain": "smart_bed",
+  "name": "Smart Bed",
+  "codeowners": ["@wpalm"],
+  "dependencies": [],
+  "documentation": "https://github.com/wpalm/smart-bed/",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "version": "0.1.0"
+}
