@@ -35,9 +35,9 @@ SENSORS_MAPPING_TEMPLATE: dict[str, SensorEntityDescription] = {
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:head",
     ),
-    "position_feet": SensorEntityDescription(
-        key="position_feet",
-        name="Position Feet",
+    "position_legs": SensorEntityDescription(
+        key="position_legs",
+        name="Position Legs",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:foot-print",
