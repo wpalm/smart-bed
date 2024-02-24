@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
-import logging
+from logging import Logger
 
 from typing import Any, Callable, TypeVar
 
@@ -38,9 +38,6 @@ MOTOR_COMMAND_VALUE_FEET_UP = b'\x09'
 MOTOR_COMMAND_VALUE_FEET_DOWN = b'\x08'
 
 
-_LOGGER = logging.getLogger(__name__)
-
-
 class SmartBedDevice:
     """Smart Bed device."""
     hw_version: str = ""
@@ -53,15 +50,13 @@ class SmartBedDevice:
     sensors: dict[str, str | float | None] = dataclasses.field(
         default_factory=lambda: {}
     )
-    __ble_device: BLEDevice
     __motor_status_data: bytearray | None = None
     __event: asyncio.Event
 
-    def __init__(self, logger: Logger, ble_device: BLEDevice):
+    def __init__(self, logger: Logger):
         super().__init__()
         self.logger = logger
         self.__event = asyncio.Event()
-        self.__ble_device = ble_device
 
     # TODO: Get real position values
     async def __update_position_head(self, client: BleakClient):
@@ -107,12 +102,12 @@ class SmartBedDevice:
             self.sensors["position_feet"] = None
 
 
-    async def update_device_data(self):
+    async def update_device_data(self, ble_device: BLEDevice):
         """Update the device data."""
-        client = await establish_connection(BleakClient, self.__ble_device, self.__ble_device.address)
+        client = await establish_connection(BleakClient, ble_device, ble_device.address)
         
-        self.name = self.__ble_device.name
-        self.address = self.__ble_device.address
+        self.name = ble_device.name
+        self.address = ble_device.address
 
         await self.__update_position_head(client)
         await self.__update_position_feet(client)
