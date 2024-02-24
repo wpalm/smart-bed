@@ -4,7 +4,7 @@ import dataclasses
 import logging
 from typing import Any
 
-from .smart_bed_ble import SmartBedBluetoothDeviceData, SmartBedDevice
+from .smart_bed_ble import SmartBedDevice
 from bleak import BleakError
 import voluptuous as vol
 
@@ -49,23 +49,17 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
         self._discovered_device: Discovery | None = None
         self._discovered_devices: dict[str, Discovery] = {}
 
-    async def _get_device_data(
-        self, discovery_info: BluetoothServiceInfo
-    ) -> SmartBedDevice:
+    async def _get_device_data(self, discovery_info: BluetoothServiceInfo) -> SmartBedDevice:
         ble_device = bluetooth.async_ble_device_from_address(
-            self.hass, discovery_info.address
-        )
+            self.hass, discovery_info.address)
         if ble_device is None:
             _LOGGER.debug("no ble_device in _get_device_data")
             raise SmartBedDeviceError("No ble_device")
 
-        smart_bed = SmartBedBluetoothDeviceData(_LOGGER)
+        smart_bed = SmartBedDevice(_LOGGER)
 
         try:
-            data = await smart_bed.update_device_data(ble_device)
-            data.name = discovery_info.advertisement.local_name
-            data.address = discovery_info.address
-            data.identifier = discovery_info.advertisement.local_name
+            await smart_bed.update_device_data(ble_device)
         except BleakError as err:
             _LOGGER.error(
                 "Error connecting to and getting data from %s: %s",
@@ -78,11 +72,9 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
                 "Unknown error occurred from %s: %s", discovery_info.address, err
             )
             raise err
-        return data
+        return smart_bed
 
-    async def async_step_bluetooth(
-        self, discovery_info: BluetoothServiceInfo
-    ) -> FlowResult:
+    async def async_step_bluetooth(self, discovery_info: BluetoothServiceInfo) -> FlowResult:
         """Handle a flow initialized by discovery over Bluetooth."""
         _LOGGER.debug("Discovered BT device: %s", discovery_info)
         await self.async_set_unique_id(discovery_info.address)
@@ -101,9 +93,7 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_bluetooth_confirm()
 
-    async def async_step_bluetooth_confirm(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_bluetooth_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle the Bluetooth confirmation step."""
         if user_input is not None:
             return self.async_create_entry(
