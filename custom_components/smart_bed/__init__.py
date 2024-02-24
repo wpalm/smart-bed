@@ -11,7 +11,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.util.unit_system import METRIC_SYSTEM
 from bleak_retry_connector import close_stale_connections_by_address
 
 from .const import DOMAIN, DEFAULT_SCAN_INTERVAL
@@ -35,10 +34,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     async def _async_update_method() -> SmartBedDevice:
         ble_device = bluetooth.async_ble_device_from_address(hass, address)
-        smart_bed = SmartBedDevice(_LOGGER, ble_device)
+        smart_bed = SmartBedDevice(_LOGGER)
 
         try:
-            await smart_bed.update_device_data()
+            await smart_bed.update_device_data(ble_device)
         except Exception as err:
             raise UpdateFailed(f"Unable to fetch data: {err}") from err
 
