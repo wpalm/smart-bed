@@ -4,6 +4,8 @@ from __future__ import annotations
 import logging
 import dataclasses
 
+from .smart_bed_ble import SmartBedDevice
+
 from homeassistant import config_entries
 from homeassistant.components.sensor import (
     SensorEntity,
