@@ -37,7 +37,7 @@ MOTOR_COMMAND_VALUE_HEAD_DOWN = b'\x0A'
 MOTOR_COMMAND_VALUE_LEGS_UP = b'\x09'
 MOTOR_COMMAND_VALUE_LEGS_DOWN = b'\x08'
 
-
+@dataclasses.dataclass
 class SmartBedDevice:
     """Smart Bed device."""
     hw_version: str = ""
