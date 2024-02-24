@@ -108,6 +108,7 @@ class SmartBedDevice:
         
         self.name = ble_device.name
         self.address = ble_device.address
+        self.identifier = ble_device.name
 
         await self.__update_position_head(client)
         await self.__update_position_feet(client)
