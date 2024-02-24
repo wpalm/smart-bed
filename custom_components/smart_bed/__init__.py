@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
-from .smart_bed_ble import SmartBedBluetoothDeviceData, SmartBedDevice
+from .smart_bed_ble import SmartBedDevice
 
 from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
@@ -33,16 +33,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not ble_device:
         raise ConfigEntryNotReady(f"Could not find Smart Bed device with address {address}")
 
-    async def _async_update_method() -> SmartBedDevice:
+    async def _async_update_method():
         ble_device = bluetooth.async_ble_device_from_address(hass, address)
-        smart_bed = SmartBedBluetoothDeviceData(_LOGGER)
+        smart_bed = SmartBedDevice(_LOGGER, ble_device)
 
         try:
-            data = await smart_bed.update_device_data(ble_device)
+            await smart_bed.update_device_data()
         except Exception as err:
             raise UpdateFailed(f"Unable to fetch data: {err}") from err
 
-        return data
+        return smart_bed
 
     coordinator = DataUpdateCoordinator(
         hass,
