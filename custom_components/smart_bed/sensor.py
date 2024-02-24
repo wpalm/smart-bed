@@ -1,6 +1,8 @@
 """Platform for sensor integration."""
 from __future__ import annotations
 
+# TODO: https://github.com/home-assistant/example-custom-config/blob/master/custom_components/example_load_platform/sensor.py
+
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
@@ -18,11 +20,11 @@ def setup_platform(
     discovery_info: DiscoveryInfoType | None = None
 ) -> None:
     """Set up the sensor platform."""
-    add_entities([BedSensor()])
+    add_entities([SmartBedSensor()])
 
 
-class BedSensor(SensorEntity):
-    _attr_name = "Bed sensor"
+class SmartBedSensor(SensorEntity):
+    _attr_name = "Smart bed sensor"
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_state_class = SensorStateClass.MEASUREMENT
 
