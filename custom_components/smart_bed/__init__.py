@@ -38,7 +38,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         smart_bed = SmartBedBluetoothDeviceData(_LOGGER)
 
         try:
-            data = await smart_bed.update_device(ble_device)
+            data = await smart_bed.update_device_data(ble_device)
         except Exception as err:
             raise UpdateFailed(f"Unable to fetch data: {err}") from err
 
