@@ -62,7 +62,7 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
         smart_bed = SmartBedBluetoothDeviceData(_LOGGER)
 
         try:
-            data = await smart_bed.update_device(ble_device)
+            data = await smart_bed.update_device_data(ble_device)
             data.name = discovery_info.advertisement.local_name
             data.address = discovery_info.address
             data.identifier = discovery_info.advertisement.local_name

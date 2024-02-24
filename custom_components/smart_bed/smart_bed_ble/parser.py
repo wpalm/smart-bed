@@ -194,3 +194,19 @@ class SmartBedBluetoothDeviceData:
             await self._send_command_up(client, device, max=True)
             await self._send_command_down(client, device, max=True)
         return device
+
+
+    async def update_device_data(self, ble_device: BLEDevice) -> SmartBedDevice:
+        """Update the device data."""
+
+        client = await establish_connection(BleakClient, ble_device, ble_device.address)
+        device = SmartBedDevice()
+        device.name = ble_device.name
+        device.address = ble_device.address
+
+        device = await self._get_position_feet(client, device)
+        device = await self._get_position_head(client, device)
+
+        await client.disconnect()
+
+        return device
