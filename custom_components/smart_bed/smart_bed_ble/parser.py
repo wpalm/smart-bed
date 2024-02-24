@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
-import struct
 from collections import namedtuple
 from datetime import datetime
 import logging
@@ -51,6 +50,8 @@ class SmartBedDevice:
 
     hw_version: str = ""
     sw_version: str = ""
+    model: str = ""
+    manufacturer: str = ""
     name: str = ""
     identifier: str = ""
     address: str = ""
