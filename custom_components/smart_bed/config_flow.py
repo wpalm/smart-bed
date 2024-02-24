@@ -38,7 +38,7 @@ def get_name(device: SmartBedDevice) -> str:
 class SmartBedDeviceError(Exception):
     """Error to indicate a device update failed."""
 
-
+# TODO: Add notice about the need to have the Smart Bed in pairing mode, await until user confirms the device is in pairing mode
 class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Smart Bed."""
 
