@@ -1,36 +1,106 @@
 """Platform for sensor integration."""
 from __future__ import annotations
 
-# TODO: https://github.com/home-assistant/example-custom-config/blob/master/custom_components/example_load_platform/sensor.py
+import logging
+import dataclasses
 
+from homeassistant import config_entries
 from homeassistant.components.sensor import (
     SensorEntity,
+    SensorEntityDescription,
     SensorStateClass,
+    SensorDeviceClass
 )
 from homeassistant.const import PERCENTAGE
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import CONNECTION_BLUETOOTH
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.typing import StateType
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator
+)
 
+from .const import DOMAIN
 
-def setup_platform(
+_LOGGER = logging.getLogger(__name__)
+
+SENSORS_MAPPING_TEMPLATE: dict[str, SensorEntityDescription] = {
+    "position_head": SensorEntityDescription(
+        key="position_head",
+        name="Position Head",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:head",
+    ),
+    "position_feet": SensorEntityDescription(
+        key="position_feet",
+        name="Position Feet",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:foot-print",
+    ),
+}
+
+async def async_setup_entry(
     hass: HomeAssistant,
-    config: ConfigType,
-    add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None
+    entry: config_entries.ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
-    add_entities([SmartBedSensor()])
+    coordinator: DataUpdateCoordinator[SmartBedDevice] = hass.data[DOMAIN][entry.entry_id]
 
+    entities = []
+    _LOGGER.debug("got sensors: %s", coordinator.data.sensors)
+    for sensor_type, sensor_value in coordinator.data.sensors.items():
+        if sensor_type not in SENSORS_MAPPING_TEMPLATE:
+            _LOGGER.debug(
+                "Unknown sensor type detected: %s, %s",
+                sensor_type,
+                sensor_value,
+            )
+            continue
+        entities.append(
+            SmartBedSensor(coordinator, coordinator.data, SENSORS_MAPPING_TEMPLATE[sensor_type])
+        )
 
-class SmartBedSensor(SensorEntity):
-    _attr_name = "Smart bed sensor"
-    _attr_native_unit_of_measurement = PERCENTAGE
-    _attr_state_class = SensorStateClass.MEASUREMENT
+    async_add_entities(entities)
 
-    def update(self) -> None:
-        """Fetch new state data for the sensor.
+class SmartBedSensor(CoordinatorEntity[DataUpdateCoordinator[SmartBedDevice]], SensorEntity):
+    _attr_has_entity_name = True
 
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self._attr_native_value = 23
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        smart_bed_device: SmartBedDevice,
+        entity_description: SensorEntityDescription,
+    ) -> None:
+        super().__init__(coordinator)
+        self.entity_description = entity_description
+
+        name = f"{smart_bed_device.name} {smart_bed_device.identifier}"
+
+        self._attr_unique_id = f"{name}_{entity_description.key}"
+
+        self._id = smart_bed_device.address
+        self._attr_device_info = DeviceInfo(
+            connections={
+                (
+                    CONNECTION_BLUETOOTH,
+                    smart_bed_device.address,
+                )
+            },
+            name=name,
+            manufacturer=smart_bed_device.manufacturer,
+            model=smart_bed_device.model,
+            hw_version=smart_bed_device.hw_version,
+            sw_version=smart_bed_device.sw_version,
+        )
+
+    @property
+    def native_value(self) -> StateType:
+        try:
+            return self.coordinator.data.sensors[self.entity_description.key]
+        except KeyError:
+            return None
