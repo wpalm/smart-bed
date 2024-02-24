@@ -9,5 +9,13 @@
   "iot_class": "local_polling",
   "integration_type": "device",
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.1.0",
+
+  "bluetooth": [
+    {
+      "connectable": true,
+      "manufacturer_id": 944,
+      "service_uuid": "00001525-9f03-0de5-96c5-b8f4f3081186"
+    }
+  ]
 }
