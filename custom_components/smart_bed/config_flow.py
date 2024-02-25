@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import dataclasses
 import logging
 from typing import Any
 
@@ -22,14 +21,6 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclasses.dataclass
-class Discovery:
-    """Discovered device."""
-    name: str
-    discovery_info: BluetoothServiceInfo
-    device: SmartBedDevice
-
-
 class SmartBedDeviceError(Exception):
     """Error to indicate a device update failed."""
 
@@ -41,8 +32,7 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
     MINOR_VERSION = 1
 
     def __init__(self) -> None:
-        self._discovered_device: Discovery | None = None
-        self._discovered_devices: dict[str, Discovery] = {}
+        self._discovered_devices: dict[str, SmartBedDevice] = {}
 
     async def _get_device_data(self, discovery_info: BluetoothServiceInfo) -> SmartBedDevice:
         ble_device = bluetooth.async_ble_device_from_address(
@@ -83,7 +73,6 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="unknown")
 
         self.context["title_placeholders"] = {"name": device.name}
-        self._discovered_device = Discovery(device.name, discovery_info, device)
 
         return await self.async_step_bluetooth_confirm()
 
@@ -108,15 +97,13 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
             address = user_input[CONF_ADDRESS]
             await self.async_set_unique_id(address, raise_on_progress=False)
             self._abort_if_unique_id_configured()
-            discovery = self._discovered_devices[address]
+            device = self._discovered_devices[address]
 
             self.context["title_placeholders"] = {
-                "name": discovery.name,
+                "name": device.name,
             }
 
-            self._discovered_device = discovery
-
-            return self.async_create_entry(title=discovery.name, data={})
+            return self.async_create_entry(title=device.name, data={})
 
         current_addresses = self._async_current_ids()
         for discovery_info in async_discovered_service_info(self.hass):
@@ -145,14 +132,14 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="cannot_connect")
             except Exception:
                 return self.async_abort(reason="unknown")
-            self._discovered_devices[address] = Discovery(device.name, discovery_info, device)
+            self._discovered_devices[address] = device
 
         if not self._discovered_devices:
             return self.async_abort(reason="no_devices_found")
 
         titles = {
-            address: discovery.device.name
-            for (address, discovery) in self._discovered_devices.items()
+            address: device.name
+            for (address, device) in self._discovered_devices.items()
         }
         return self.async_show_form(
             step_id="user",
