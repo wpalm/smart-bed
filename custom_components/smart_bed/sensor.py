@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import dataclasses
 
 from .smart_bed_ble import SmartBedDevice
 
@@ -40,7 +39,7 @@ SENSORS_MAPPING_TEMPLATE: dict[str, SensorEntityDescription] = {
         name="Position Legs",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:foot-print",
+        icon="mdi:seat-legroom-extra",
     ),
 }
 
