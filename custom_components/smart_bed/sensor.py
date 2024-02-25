@@ -39,7 +39,7 @@ SENSORS_MAPPING_TEMPLATE: dict[str, SensorEntityDescription] = {
         name="Position Legs",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        icon="mdi:seat-legroom-extra",
+        icon="mdi:foot-print",
     ),
 }
 
