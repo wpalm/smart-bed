@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import dataclasses
 from logging import Logger
 
 from typing import Any, Callable, TypeVar
@@ -12,7 +11,6 @@ from bleak import BleakClient, BleakError
 from bleak.backends.device import BLEDevice
 from bleak_retry_connector import establish_connection
 
-WrapFuncType = TypeVar("WrapFuncType", bound=Callable[..., Any])
 
 class BleakCharacteristicMissing(BleakError):
     """Raised when a characteristic is missing from a service."""
@@ -37,7 +35,7 @@ MOTOR_COMMAND_VALUE_HEAD_DOWN = b'\x0A'
 MOTOR_COMMAND_VALUE_LEGS_UP = b'\x09'
 MOTOR_COMMAND_VALUE_LEGS_DOWN = b'\x08'
 
-@dataclasses.dataclass
+
 class SmartBedDevice:
     """Smart Bed device."""
     hw_version: str = ""
@@ -47,9 +45,7 @@ class SmartBedDevice:
     name: str = ""
     identifier: str = ""
     address: str = ""
-    sensors: dict[str, str | float | None] = dataclasses.field(
-        default_factory=lambda: {}
-    )
+    sensors: dict[str, str | float | None] = {}
     __motor_status_data: bytearray | None = None
     __event: asyncio.Event
 
