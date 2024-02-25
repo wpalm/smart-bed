@@ -30,11 +30,6 @@ class Discovery:
     device: SmartBedDevice
 
 
-def get_name(device: SmartBedDevice) -> str:
-    """Get the name of the device."""
-    return f"{device.name}"
-
-
 class SmartBedDeviceError(Exception):
     """Error to indicate a device update failed."""
 
@@ -87,9 +82,8 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
         except Exception:
             return self.async_abort(reason="unknown")
 
-        name = get_name(device)
-        self.context["title_placeholders"] = {"name": name}
-        self._discovered_device = Discovery(name, discovery_info, device)
+        self.context["title_placeholders"] = {"name": device.name}
+        self._discovered_device = Discovery(device.name, discovery_info, device)
 
         return await self.async_step_bluetooth_confirm()
 
@@ -151,14 +145,13 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
                 return self.async_abort(reason="cannot_connect")
             except Exception:
                 return self.async_abort(reason="unknown")
-            name = get_name(device)
-            self._discovered_devices[address] = Discovery(name, discovery_info, device)
+            self._discovered_devices[address] = Discovery(device.name, discovery_info, device)
 
         if not self._discovered_devices:
             return self.async_abort(reason="no_devices_found")
 
         titles = {
-            address: get_name(discovery.device)
+            address: discovery.device.name
             for (address, discovery) in self._discovered_devices.items()
         }
         return self.async_show_form(
