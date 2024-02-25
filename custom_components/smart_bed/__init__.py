@@ -4,10 +4,9 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
-from .smart_bed_ble import SmartBedDevice
+from .smart_bed_device import SmartBedDevice
 
 from homeassistant.components import bluetooth
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -15,11 +14,12 @@ from bleak_retry_connector import close_stale_connections_by_address
 
 from .const import DOMAIN, DEFAULT_SCAN_INTERVAL
 
-PLATFORMS: list[str] = [Platform.SENSOR]
+PLATFORMS: list[str] = [Platform.SENSOR, Platform.BUTTON]
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+# TODO: Fix coordinator: https://developers.home-assistant.io/docs/integration_fetching_data/
+async def async_setup_entry(hass, entry) -> bool:
     """Set up Smart Bed device from config entry."""
     hass.data.setdefault(DOMAIN, {})
     address = entry.unique_id
@@ -59,7 +59,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     return True
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+
+async def async_unload_entry(hass, entry) -> bool:
     """Unload a config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)

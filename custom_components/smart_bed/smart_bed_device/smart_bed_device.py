@@ -1,11 +1,9 @@
-"""Smart Bed BLE devices"""
+"""Smart Bed devices"""
 
 from __future__ import annotations
 
 import asyncio
 from logging import Logger
-
-from typing import Any, Callable, TypeVar
 
 from bleak import BleakClient, BleakError
 from bleak.backends.device import BLEDevice
@@ -45,9 +43,12 @@ class SmartBedDevice:
     name: str = ""
     identifier: str = ""
     address: str = ""
-    sensors: dict[str, str | float | None] = {}
-    __motor_status_data: bytearray | None = None
     __event: asyncio.Event
+    __ble_device: BLEDevice
+
+    __motor_status_data: bytearray | None = None
+    position_head_pct: int | None = None
+    position_legs_pct: int | None = None
 
     def __init__(self, logger: Logger):
         super().__init__()
@@ -71,9 +72,9 @@ class SmartBedDevice:
             self.logger.warn("_get_position_head Bleak error 2")
 
         if self.__motor_status_data is not None and len(self.__motor_status_data) == 1:
-            self.sensors["position_head"] = int(self._motor__status_data[0])
+            self.position_head_pct = int(self._motor__status_data[0])
         else:
-            self.sensors["position_head"] = None
+            self.position_head_pct = None
 
 
     # TODO: Get real position values
@@ -93,9 +94,9 @@ class SmartBedDevice:
             self.logger.warn("_get_position_legs Bleak error 2")
 
         if self.__motor_status_data is not None and len(self.__motor_status_data) == 1:
-            self.sensors["position_legs"] = int(self.__motor_status_data[0])
+            self.position_legs_pct = int(self.__motor_status_data[0])
         else:
-            self.sensors["position_legs"] = None
+            self.position_legs_pct = None
 
 
     async def update_device_data(self, ble_device: BLEDevice):
@@ -104,7 +105,7 @@ class SmartBedDevice:
         
         self.name = ble_device.name
         self.address = ble_device.address
-        self.identifier = ble_device.name
+        self.identifier = ble_device.address
 
         await self.__update_position_head(client)
         await self.__update_position_legs(client)
@@ -112,39 +113,43 @@ class SmartBedDevice:
         await client.disconnect()
     
     
-    async def __send_motor_command(self, client: BleakClient, command, duration):
+    async def __send_motor_command(self, command, duration):
+        client = await establish_connection(BleakClient, ble_device, ble_device.address)
+
         delay = 0.1
         repeat = duration/delay
         for _ in range(int(repeat)):
             await client.write_gatt_char(MOTOR_COMMAND_CHARACTERISTIC_UUID_WRITE, data=command)
             await asyncio.sleep(delay)
 
+        await client.disconnect()  
 
-    async def send_command_head_up(self, client: BleakClient, duration = 0.2, max = False):
+
+    async def send_command_head_up(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_VALUE_HEAD_UP, 20 if (max) else duration)
     
 
-    async def send_command_head_down(self, client: BleakClient, duration = 0.2, max = False):
+    async def send_command_head_down(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_VALUE_HEAD_DOWN, 20 if (max) else duration)
     
 
-    async def send_command_legs_up(self, client: BleakClient, duration = 0.2, max = False):
+    async def send_command_legs_up(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_VALUE_LEGS_UP, 20 if (max) else duration)
     
 
-    async def send_command_legs_down(self, client: BleakClient, duration = 0.2, max = False):
+    async def send_command_legs_down(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_VALUE_LEGS_DOWN, 20 if (max) else duration)
     
 
-    async def send_command_up(self, client: BleakClient, duration = 0.2, max = False):
+    async def send_command_up(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_VALUE_UP, 20 if (max) else duration)
     
 
-    async def send_command_down(self, client: BleakClient, duration = 0.2, max = False):
+    async def send_command_down(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_VALUE_DOWN, 20 if (max) else duration)
     
 
-    async def send_command_wave(self, client: BleakClient, repeat = 1):
+    async def send_command_wave(self, repeat = 1):
         for _ in range(repeat):
             await self._send_command_up(client, device, max=True)
             await self._send_command_down(client, device, max=True)
