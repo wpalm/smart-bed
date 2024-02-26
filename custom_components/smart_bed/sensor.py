@@ -5,7 +5,8 @@ from .smart_bed_device import SmartBedDevice
 from .models import SmartBedData
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import AddEntitiesCallback, StateType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import StateType
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import PERCENTAGE
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
