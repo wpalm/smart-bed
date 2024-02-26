@@ -1,4 +1,4 @@
 """Constants"""
 
 DOMAIN = "smart_bed"
-DEFAULT_SCAN_INTERVAL = 600
+DEFAULT_UPDATE_INTERVAL = 600

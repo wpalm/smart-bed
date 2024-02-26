@@ -1,4 +1,4 @@
-"""Smart Bed devices"""
+"""Smart Bed device."""
 
 from __future__ import annotations
 
@@ -50,10 +50,11 @@ class SmartBedDevice:
     position_head_pct: int | None = None
     position_legs_pct: int | None = None
 
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: Logger, ble_device: BLEDevice):
         super().__init__()
         self.logger = logger
         self.__event = asyncio.Event()
+        self.__ble_device = ble_device
 
     # TODO: Get real position values
     async def __update_position_head(self, client: BleakClient):
@@ -99,13 +100,13 @@ class SmartBedDevice:
             self.position_legs_pct = None
 
 
-    async def update_device_data(self, ble_device: BLEDevice):
+    async def update_device_data(self):
         """Update the device data."""
-        client = await establish_connection(BleakClient, ble_device, ble_device.address)
+        client = await establish_connection(BleakClient, self.__ble_device, self.__ble_device.address)
         
-        self.name = ble_device.name
-        self.address = ble_device.address
-        self.identifier = ble_device.address
+        self.name = self.__ble_device.name
+        self.address = self.__ble_device.address
+        self.identifier = self.__ble_device.address
 
         await self.__update_position_head(client)
         await self.__update_position_legs(client)
@@ -114,7 +115,7 @@ class SmartBedDevice:
     
     
     async def __send_motor_command(self, command, duration):
-        client = await establish_connection(BleakClient, ble_device, ble_device.address)
+        client = await establish_connection(BleakClient, self.__ble_device, self.__ble_device.address)
 
         delay = 0.1
         repeat = duration/delay

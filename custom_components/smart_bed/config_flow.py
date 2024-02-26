@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from .smart_bed_ble import SmartBedDevice
+from .smart_bed_device import SmartBedDevice
 from bleak import BleakError
 import voluptuous as vol
 
@@ -41,22 +41,18 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
             _LOGGER.debug("no ble_device in _get_device_data")
             raise SmartBedDeviceError("No ble_device")
 
-        smart_bed = SmartBedDevice(_LOGGER)
+        smart_bed = SmartBedDevice(_LOGGER, ble_device)
 
         try:
-            await smart_bed.update_device_data(ble_device)
+            await smart_bed.update_device_data()
         except BleakError as err:
-            _LOGGER.error(
-                "Error connecting to and getting data from %s: %s",
-                discovery_info.address,
-                err,
-            )
+            _LOGGER.error("Error connecting to and getting data from %s: %s",
+                discovery_info.address,err,)
             raise SmartBedDeviceError("Failed getting device data") from err
         except Exception as err:
-            _LOGGER.error(
-                "Unknown error occurred from %s: %s", discovery_info.address, err
-            )
+            _LOGGER.error("Unknown error occurred from %s: %s", discovery_info.address, err)
             raise err
+        
         return smart_bed
 
     async def async_step_bluetooth(self, discovery_info: BluetoothServiceInfo) -> FlowResult:
@@ -89,9 +85,7 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders=self.context["title_placeholders"],
         )
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Handle a flow initialized by the user."""
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
