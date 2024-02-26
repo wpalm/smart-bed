@@ -1,7 +1,6 @@
 """Smart Bed device."""
 
 from __future__ import annotations
-
 import asyncio
 from logging import Logger
 
