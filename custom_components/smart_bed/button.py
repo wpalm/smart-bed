@@ -18,10 +18,20 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         StartWaveButton(data.device)
     ])
 
-
-class StartWaveButton(ButtonEntity):
+class ButtonBase(ButtonEntity):
     def __init__(self, device: SmartBedDevice):
         self._device = device
+
+    @property
+    def device_info(self):
+        """Return information to link this entity with the correct device."""
+        return {"identifiers": {(DOMAIN, self._device.identifier)}}
+
+class StartWaveButton(ButtonBase):
+    def __init__(self, device: SmartBedDevice):
+        super().__init__(device)
+        self._attr_unique_id = f"{self._device.identifier}_start_wave_button"
+        self._attr_name = f"{self._device.name} Start Wave Button"
 
     async def async_press(self) -> None:
         _LOGGER.debug("Pressed button")
