@@ -27,7 +27,7 @@ async def async_setup_entry(
         PositionLegsSensor(data.coordinator, data.device),
     ])
 
-# TODO: add _handle_coordinator_update callback to support polling?
+
 class SensorBase(CoordinatorEntity[DataUpdateCoordinator[None]], SensorEntity):
     def __init__(self, 
                  coordinator: DataUpdateCoordinator[None],
