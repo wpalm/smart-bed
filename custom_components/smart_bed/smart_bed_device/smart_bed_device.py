@@ -149,7 +149,7 @@ class SmartBedDevice:
         await self.__send_motor_command(MOTOR_COMMAND_VALUE_DOWN, 20 if (max) else duration)
     
 
-    async def send_command_wave(self, repeat = 1):
+    async def send_command_wave(self, repeat = 2):
         for _ in range(repeat):
-            await self._send_command_up(client, device, max=True)
-            await self._send_command_down(client, device, max=True)
+            await self.send_command_up(max=True)
+            await self.send_command_down(max=True)
