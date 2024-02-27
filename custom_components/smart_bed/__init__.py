@@ -4,6 +4,7 @@ import logging
 from homeassistant.components import bluetooth
 from homeassistant.const import Platform
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers import device_registry
 from .const import DOMAIN
 from .smart_bed_device import SmartBedDevice
 from .coordinator import SmartBedCoordinator
@@ -22,6 +23,24 @@ async def async_setup_entry(hass, entry) -> bool:
         raise ConfigEntryNotReady(f"Could not find Smart Bed device with address {address}")
 
     smart_bed = SmartBedDevice(_LOGGER, ble_device)
+
+    # Get device data
+    try:
+        await smart_bed.update_device_data()
+    except Exception as e:
+        raise ConfigEntryNotReady(f"Could not get device data: {e}")
+
+    # Register device in device registry
+    dr = await device_registry.async_get(hass)
+    dr.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        # TODO: Add more device metadata, connections={(dr.CONNECTION_NETWORK_MAC, config.mac)},
+        identifiers={(DOMAIN, smart_bed.identifier)},
+        manufacturer= smart_bed.manufacturer,
+        name=smart_bed.name,
+        model=smart_bed.model,
+        sw_version= smart_bed.sw_version,
+    )
 
     coordinator = SmartBedCoordinator(hass, smart_bed)
     await coordinator.async_config_entry_first_refresh()
