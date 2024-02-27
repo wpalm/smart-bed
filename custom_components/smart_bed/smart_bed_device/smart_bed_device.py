@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 from logging import Logger
 
+from uuid import UUID
 from bleak import BleakClient, BleakError
 from bleak.backends.device import BLEDevice
 from bleak_retry_connector import establish_connection
@@ -17,8 +18,17 @@ class BleakServiceMissing(BleakError):
     """Raised when a service is missing."""
 
 
-MOTOR_STATUS_CHARACTERISTIC_UUID_READ = "00001525-0000-1000-8000-00805f9b34fb"
-MOTOR_COMMAND_CHARACTERISTIC_UUID_WRITE = "00001524-0000-1000-8000-00805f9b34fb"
+# Smart Bed device: VMAT-BASIC-RF
+MANUFACTURER_NAME_STRING_COMMAND_CHARACTERISTIC = UUID("0x2A29")
+MODEL_NUMBER_STRING_COMMAND_CHARACTERISTIC = UUID("0x2A24")
+FIRMWARE_REVISION_STRING_COMMAND_CHARACTERISTIC = UUID("0x2A26")
+SOFTWARE_REVISION_STRING_COMMAND_CHARACTERISTIC = UUID("0x2A28")
+MOTOR_COMMAND_CHARACTERISTIC = UUID("00001526-9f03-Ode5-96c5-b8f4f3081186")
+FLOOR_LIGHT_CHARACTERISTIC = UUID("00001529-9f03-Ode5-96c5-b8f4f3081186")
+FACTORY_RESET_CHARACTERISTIC = UUID("00001528-9f03-Ode5-96c5-b8f4f3081186")
+MOTOR_STATUS_CHARACTERISTIC = UUID("00001531-9f03-Ode5-96c5-b8f4f3081186")
+CHIP_TEMP_CHARACTERISTIC = UUID("00001532-9f03-Ode5-96c5-b8f4f3081186")
+SERVICE_IF_CHARACTERISTIC = UUID("00001533-9f03-Ode5-96c5-b8f4f3081186")
 
 # Full range: 20 s
 MOTOR_COMMAND_VALUE_DOWN = b'\x00'
@@ -59,7 +69,7 @@ class SmartBedDevice:
     async def __update_position_head(self, client: BleakClient):
         self.__event = asyncio.Event()
         try:
-            self.__motor_status_data = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC_UUID_READ)
+            self.__motor_status_data = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC)
         except:
             self.logger.warn("_get_position_head Bleak error 1")
 
@@ -81,7 +91,7 @@ class SmartBedDevice:
     async def __update_position_legs(self, client: BleakClient):
         self.__event = asyncio.Event()
         try:
-            self.__motor_status_data = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC_UUID_READ)
+            self.__motor_status_data = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC)
         except:
             self.logger.warn("_get_position_legs Bleak error 1")
 
@@ -119,7 +129,7 @@ class SmartBedDevice:
         delay = 0.1
         repeat = duration/delay
         for _ in range(int(repeat)):
-            await client.write_gatt_char(MOTOR_COMMAND_CHARACTERISTIC_UUID_WRITE, data=command)
+            await client.write_gatt_char(MOTOR_COMMAND_CHARACTERISTIC, data=command)
             await asyncio.sleep(delay)
 
         await client.disconnect()  
