@@ -24,7 +24,7 @@ from .const import (
     MOTOR_COMMAND_LEGS_UP,
     MOTOR_COMMAND_LEGS_RANGE_DURATION,
 )
-from bleak import BleakClient, BleakError
+from bleak import BleakClient
 from bleak.backends.device import BLEDevice
 
 
