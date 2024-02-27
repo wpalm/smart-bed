@@ -16,14 +16,16 @@ from .const import (
     SERVICE_IF_CHARACTERISTIC,
     MOTOR_COMMAND_DOWN,
     MOTOR_COMMAND_UP,
-    MOTOR_COMMAND_HEAD_UP,
+    MOTOR_COMMAND_RANGE_DURATION,
     MOTOR_COMMAND_HEAD_DOWN,
-    MOTOR_COMMAND_LEGS_UP,
+    MOTOR_COMMAND_HEAD_UP,
+    MOTOR_COMMAND_HEAD_RANGE_DURATION,
     MOTOR_COMMAND_LEGS_DOWN,
+    MOTOR_COMMAND_LEGS_UP,
+    MOTOR_COMMAND_LEGS_RANGE_DURATION,
 )
 from bleak import BleakClient, BleakError
 from bleak.backends.device import BLEDevice
-from bleak_retry_connector import establish_connection
 
 
 class BleakCharacteristicMissing(BleakError):
@@ -102,49 +104,49 @@ class SmartBedDevice:
 
     async def update_device_data(self):
         """Update the device data."""
-        client = await establish_connection(BleakClient, self.__ble_device, self.__ble_device.address)
-        
-        self.name = self.__ble_device.name
-        self.address = self.__ble_device.address
-        self.identifier = self.__ble_device.address
+        async with BleakClient(self.__ble_device) as client:
+            self.name = self.__ble_device.name
+            self.address = self.__ble_device.address
+            self.identifier = self.__ble_device.address
 
-        await self.__update_position_head(client)
-        await self.__update_position_legs(client)
-
-        await client.disconnect()
+            await self.__update_position_head(client)
+            await self.__update_position_legs(client)
     
     
     async def __send_motor_command(self, command, duration):
-        client = await establish_connection(BleakClient, self.__ble_device, self.__ble_device.address)
-
-        delay = 0.1
-        repeat = duration/delay
-        for _ in range(int(repeat)):
-            await client.write_gatt_char(MOTOR_COMMAND_CHARACTERISTIC, data=command)
-            await asyncio.sleep(delay)
-
-        await client.disconnect()  
+        async with BleakClient(self.__ble_device) as client:
+            delay: float = 0.1
+            repeat: int = int(duration / delay)
+            for _ in range(repeat):
+                await client.write_gatt_char(MOTOR_COMMAND_CHARACTERISTIC, data=command)
+                await asyncio.sleep(delay)
 
 
-    async def head_up(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_HEAD_UP, 20 if (max) else duration)
-    
-    async def head_down(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_HEAD_DOWN, 20 if (max) else duration)
-    
-    async def legs_up(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_LEGS_UP, 20 if (max) else duration)
-    
-    async def legs_down(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_LEGS_DOWN, 20 if (max) else duration)
-    
-    async def up(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_UP, 20 if (max) else duration)
-    
-    async def down(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_DOWN, 20 if (max) else duration)
-    
-    async def start_wave(self, repeat = 2):
+    async def down(self, duration=0.2, max=False):
+        await self.__send_motor_command(MOTOR_COMMAND_DOWN, MOTOR_COMMAND_RANGE_DURATION if max else duration)
+
+
+    async def up(self, duration=0.2, max=False):
+        await self.__send_motor_command(MOTOR_COMMAND_UP, MOTOR_COMMAND_RANGE_DURATION if max else duration)
+
+
+    async def head_down(self, duration=0.2, max=False):
+        await self.__send_motor_command(MOTOR_COMMAND_HEAD_DOWN, MOTOR_COMMAND_HEAD_RANGE_DURATION if max else duration)
+
+
+    async def head_up(self, duration=0.2, max=False):
+        await self.__send_motor_command(MOTOR_COMMAND_HEAD_UP, MOTOR_COMMAND_HEAD_RANGE_DURATION if max else duration)
+
+
+    async def legs_down(self, duration=0.2, max=False):
+        await self.__send_motor_command(MOTOR_COMMAND_LEGS_DOWN, MOTOR_COMMAND_LEGS_RANGE_DURATION if max else duration)
+
+
+    async def legs_up(self, duration=0.2, max=False):
+        await self.__send_motor_command(MOTOR_COMMAND_LEGS_UP, MOTOR_COMMAND_LEGS_RANGE_DURATION if max else duration)
+
+
+    async def start_wave(self, repeat=2):
         for _ in range(repeat):
             await self.up(max=True)
             await self.down(max=True)
