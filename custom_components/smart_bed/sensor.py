@@ -36,6 +36,8 @@ class SensorBase(CoordinatorEntity[DataUpdateCoordinator[None]], SensorEntity):
         super().__init__(coordinator)
         self._device = device
 
+    should_poll = False
+
     @property
     def device_info(self):
         """Return information to link this entity with the correct device."""
