@@ -35,8 +35,7 @@ class SmartBedConfigFlow(ConfigFlow, domain=DOMAIN):
         self._discovered_devices: dict[str, SmartBedDevice] = {}
 
     async def _get_device_data(self, discovery_info: BluetoothServiceInfo) -> SmartBedDevice:
-        ble_device = bluetooth.async_ble_device_from_address(
-            self.hass, discovery_info.address)
+        ble_device = bluetooth.async_ble_device_from_address(self.hass, discovery_info.address)
         if ble_device is None:
             _LOGGER.debug("no ble_device in _get_device_data")
             raise SmartBedDeviceError("No ble_device")
