@@ -38,10 +38,11 @@ class BleakServiceMissing(BleakError):
 
 class SmartBedDevice:
     """Smart Bed device."""
-    hw_version: str = ""
-    sw_version: str = ""
-    model: str = ""
     manufacturer: str = ""
+    model: str = ""
+    fw_version: str = ""
+    sw_version: str = ""
+
     name: str = ""
     identifier: str = ""
     address: str = ""
@@ -109,8 +110,10 @@ class SmartBedDevice:
             self.address = self.__ble_device.address
             self.identifier = self.__ble_device.address
 
-            await self.__update_position_head(client)
-            await self.__update_position_legs(client)
+            self.manufacturer = await client.read_gatt_char(MANUFACTURER_NAME_STRING_CHARACTERISTIC)
+            self.model = await client.read_gatt_char(MODEL_NUMBER_STRING_CHARACTERISTIC)
+            self.fw_version = await client.read_gatt_char(FIRMWARE_REVISION_STRING_CHARACTERISTIC)
+            self.sw_version = await client.read_gatt_char(SOFTWARE_REVISION_STRING_CHARACTERISTIC)
     
     
     async def __send_motor_command(self, command, duration):
