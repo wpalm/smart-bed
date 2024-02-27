@@ -28,14 +28,6 @@ from bleak import BleakClient, BleakError
 from bleak.backends.device import BLEDevice
 
 
-class BleakCharacteristicMissing(BleakError):
-    """Raised when a characteristic is missing from a service."""
-
-
-class BleakServiceMissing(BleakError):
-    """Raised when a service is missing."""
-
-
 class SmartBedDevice:
     """Smart Bed device."""
     manufacturer: str = ""
@@ -43,64 +35,20 @@ class SmartBedDevice:
     fw_version: str = ""
     sw_version: str = ""
 
+    __ble_device: BLEDevice
     name: str = ""
     identifier: str = ""
     address: str = ""
-    __event: asyncio.Event
-    __ble_device: BLEDevice
 
-    __motor_status_data: bytearray | None = None
-    position_head_pct: int | None = None
-    position_legs_pct: int | None = None
+    motor_status: bytearray | None = None
+    floor_light: bytearray | None = None
+    chip_temp: bytearray | None = None
+
 
     def __init__(self, logger: Logger, ble_device: BLEDevice):
         super().__init__()
         self.logger = logger
-        self.__event = asyncio.Event()
         self.__ble_device = ble_device
-
-    # TODO: Get real position values
-    async def __update_position_head(self, client: BleakClient):
-        self.__event = asyncio.Event()
-        try:
-            self.__motor_status_data = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC)
-        except:
-            self.logger.warn("_get_position_head Bleak error 1")
-
-        # Wait for up to 5 seconds to see if a callback comes in.
-        try:
-            await asyncio.wait_for(self.__event.wait(), 10)
-        except asyncio.TimeoutError:
-            self.logger.warn("Timeout getting position_head data.")
-        except:
-            self.logger.warn("_get_position_head Bleak error 2")
-
-        if self.__motor_status_data is not None and len(self.__motor_status_data) == 1:
-            self.position_head_pct = int(self._motor__status_data[0])
-        else:
-            self.position_head_pct = None
-
-
-    # TODO: Get real position values
-    async def __update_position_legs(self, client: BleakClient):
-        self.__event = asyncio.Event()
-        try:
-            self.__motor_status_data = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC)
-        except:
-            self.logger.warn("_get_position_legs Bleak error 1")
-
-        # Wait for up to 5 seconds to see if a callback comes in.
-        try:
-            await asyncio.wait_for(self.__event.wait(), 10)
-        except asyncio.TimeoutError:
-            self.logger.warn("Timeout getting position_legs data.")
-        except:
-            self.logger.warn("_get_position_legs Bleak error 2")
-
-        if self.__motor_status_data is not None and len(self.__motor_status_data) == 1:
-            self.position_legs_pct = int(self.__motor_status_data[0])
-        else:
-            self.position_legs_pct = None
 
 
     async def update_device_data(self):
@@ -114,6 +62,10 @@ class SmartBedDevice:
             self.model = await client.read_gatt_char(MODEL_NUMBER_STRING_CHARACTERISTIC)
             self.fw_version = await client.read_gatt_char(FIRMWARE_REVISION_STRING_CHARACTERISTIC)
             self.sw_version = await client.read_gatt_char(SOFTWARE_REVISION_STRING_CHARACTERISTIC)
+
+            self.motor_status = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC)
+            self.floor_light = await client.read_gatt_char(FLOOR_LIGHT_CHARACTERISTIC)
+            self.chip_temp = await client.read_gatt_char(CHIP_TEMP_CHARACTERISTIC)
     
     
     async def __send_motor_command(self, command, duration):
