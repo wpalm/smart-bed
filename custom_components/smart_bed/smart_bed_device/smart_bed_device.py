@@ -14,6 +14,12 @@ from .const import (
     MOTOR_STATUS_CHARACTERISTIC,
     CHIP_TEMP_CHARACTERISTIC,
     SERVICE_IF_CHARACTERISTIC,
+    MOTOR_COMMAND_DOWN,
+    MOTOR_COMMAND_UP,
+    MOTOR_COMMAND_HEAD_UP,
+    MOTOR_COMMAND_HEAD_DOWN,
+    MOTOR_COMMAND_LEGS_UP,
+    MOTOR_COMMAND_LEGS_DOWN,
 )
 from bleak import BleakClient, BleakError
 from bleak.backends.device import BLEDevice
@@ -26,18 +32,6 @@ class BleakCharacteristicMissing(BleakError):
 
 class BleakServiceMissing(BleakError):
     """Raised when a service is missing."""
-
-# Full range: 20 s
-MOTOR_COMMAND_VALUE_DOWN = b'\x00'
-MOTOR_COMMAND_VALUE_UP = b'\x10'
-
-# Full range: x s
-MOTOR_COMMAND_VALUE_HEAD_UP = b'\x0B'
-MOTOR_COMMAND_VALUE_HEAD_DOWN = b'\x0A'
-
-# Full range: x s
-MOTOR_COMMAND_VALUE_LEGS_UP = b'\x09'
-MOTOR_COMMAND_VALUE_LEGS_DOWN = b'\x08'
 
 
 class SmartBedDevice:
@@ -133,27 +127,27 @@ class SmartBedDevice:
 
 
     async def send_command_head_up(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_VALUE_HEAD_UP, 20 if (max) else duration)
+        await self.__send_motor_command(MOTOR_COMMAND_HEAD_UP, 20 if (max) else duration)
     
 
     async def send_command_head_down(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_VALUE_HEAD_DOWN, 20 if (max) else duration)
+        await self.__send_motor_command(MOTOR_COMMAND_HEAD_DOWN, 20 if (max) else duration)
     
 
     async def send_command_legs_up(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_VALUE_LEGS_UP, 20 if (max) else duration)
+        await self.__send_motor_command(MOTOR_COMMAND_LEGS_UP, 20 if (max) else duration)
     
 
     async def send_command_legs_down(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_VALUE_LEGS_DOWN, 20 if (max) else duration)
+        await self.__send_motor_command(MOTOR_COMMAND_LEGS_DOWN, 20 if (max) else duration)
     
 
     async def send_command_up(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_VALUE_UP, 20 if (max) else duration)
+        await self.__send_motor_command(MOTOR_COMMAND_UP, 20 if (max) else duration)
     
 
     async def send_command_down(self, duration = 0.2, max = False):
-        await self.__send_motor_command(MOTOR_COMMAND_VALUE_DOWN, 20 if (max) else duration)
+        await self.__send_motor_command(MOTOR_COMMAND_DOWN, 20 if (max) else duration)
     
 
     async def send_command_wave(self, repeat = 2):
