@@ -4,7 +4,6 @@ from datetime import timedelta
 import logging
 from .smart_bed_device import SmartBedDevice
 import async_timeout
-from homeassistant.core import callback
 from homeassistant.components import bluetooth
 from homeassistant.const import Platform
 from homeassistant.exceptions import ConfigEntryNotReady
