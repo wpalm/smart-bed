@@ -126,31 +126,25 @@ class SmartBedDevice:
         await client.disconnect()  
 
 
-    async def send_command_head_up(self, duration = 0.2, max = False):
+    async def head_up(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_HEAD_UP, 20 if (max) else duration)
     
-
-    async def send_command_head_down(self, duration = 0.2, max = False):
+    async def head_down(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_HEAD_DOWN, 20 if (max) else duration)
     
-
-    async def send_command_legs_up(self, duration = 0.2, max = False):
+    async def legs_up(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_LEGS_UP, 20 if (max) else duration)
     
-
-    async def send_command_legs_down(self, duration = 0.2, max = False):
+    async def legs_down(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_LEGS_DOWN, 20 if (max) else duration)
     
-
-    async def send_command_up(self, duration = 0.2, max = False):
+    async def up(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_UP, 20 if (max) else duration)
     
-
-    async def send_command_down(self, duration = 0.2, max = False):
+    async def down(self, duration = 0.2, max = False):
         await self.__send_motor_command(MOTOR_COMMAND_DOWN, 20 if (max) else duration)
     
-
-    async def send_command_wave(self, repeat = 2):
+    async def start_wave(self, repeat = 2):
         for _ in range(repeat):
-            await self.send_command_up(max=True)
-            await self.send_command_down(max=True)
+            await self.up(max=True)
+            await self.down(max=True)

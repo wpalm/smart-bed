@@ -35,4 +35,4 @@ class StartWaveButton(ButtonBase):
 
     async def async_press(self) -> None:
         _LOGGER.debug("Pressed button")
-        await self._device.send_command_wave()
+        await self._device.start_wave()
