@@ -1,8 +1,5 @@
 """Platform for sensor integration."""
 from __future__ import annotations
-import logging
-from .smart_bed_device import SmartBedDevice
-from .models import SmartBedData
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -11,8 +8,9 @@ from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import PERCENTAGE
 from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 from .const import DOMAIN
+from .coordinator import SmartBedCoordinator
+from .smart_bed_device import SmartBedDevice
 
-_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
         hass: HomeAssistant,
@@ -20,21 +18,20 @@ async def async_setup_entry(
         async_add_entities: AddEntitiesCallback,
         ) -> None:
     """Add sensors for passed config_entry in HA."""
-    data: SmartBedData = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: SmartBedCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     async_add_entities([
-        PositionHeadSensor(data.coordinator, data.device),
-        PositionLegsSensor(data.coordinator, data.device),
+        PositionHeadSensor(coordinator),
+        PositionLegsSensor(coordinator),
     ])
 
 
-class SensorBase(CoordinatorEntity[DataUpdateCoordinator[None]], SensorEntity):
+class SensorBase(CoordinatorEntity[SmartBedCoordinator], SensorEntity):
     def __init__(self, 
-                 coordinator: DataUpdateCoordinator[None],
-                 device: SmartBedDevice,
+                 coordinator: SmartBedCoordinator
                 ) -> None:
         super().__init__(coordinator)
-        self._device = device
+        self._device: SmartBedDevice = coordinator.api
 
     @property
     def device_info(self):

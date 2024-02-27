@@ -1,14 +1,12 @@
 """The Smart Bed integration."""
 from __future__ import annotations
-from datetime import timedelta
 import logging
-from .smart_bed_device import SmartBedDevice
-import async_timeout
 from homeassistant.components import bluetooth
 from homeassistant.const import Platform
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from .const import DOMAIN, DEFAULT_UPDATE_INTERVAL
+from .const import DOMAIN
+from .smart_bed_device import SmartBedDevice
+from .coordinator import SmartBedCoordinator
 
 PLATFORMS: list[str] = [Platform.SENSOR, Platform.BUTTON]
 
@@ -32,28 +30,6 @@ async def async_setup_entry(hass, entry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
-
-
-class SmartBedCoordinator(DataUpdateCoordinator):
-    """ Smart Bed data update coordinator. """
-    def __init__(self, hass, api: SmartBedDevice):
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,
-            update_interval=timedelta(seconds=DEFAULT_UPDATE_INTERVAL),
-        )
-        self.api = api
-
-    async def _async_update_data(self):
-        """Fetch data from API endpoint."""
-        try:
-            # Note: asyncio.TimeoutError and aiohttp.ClientError are already
-            # handled by the data update coordinator.
-            async with async_timeout.timeout(20):
-                return await self.api.update_device_data()
-        except Exception as err:
-            raise UpdateFailed(f"Unable to fetch data: {err}")
 
 
 async def async_unload_entry(hass, entry) -> bool:
