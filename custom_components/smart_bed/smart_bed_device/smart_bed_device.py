@@ -58,10 +58,11 @@ class SmartBedDevice:
             self.address = self.__ble_device.address
             self.identifier = self.__ble_device.address
 
-            self.manufacturer = (await client.read_gatt_char(MANUFACTURER_NAME_STRING_CHARACTERISTIC)).decode("utf-8")
-            self.model = (await client.read_gatt_char(MODEL_NUMBER_STRING_CHARACTERISTIC)).decode("utf-8")
-            self.fw_version = (await client.read_gatt_char(FIRMWARE_REVISION_STRING_CHARACTERISTIC)).decode("utf-8")
-            self.sw_version = (await client.read_gatt_char(SOFTWARE_REVISION_STRING_CHARACTERISTIC)).decode("utf-8")
+            # TODO: Get the device metadata
+            # self.manufacturer = (await client.read_gatt_char(MANUFACTURER_NAME_STRING_CHARACTERISTIC)).decode("utf-8")
+            # self.model = (await client.read_gatt_char(MODEL_NUMBER_STRING_CHARACTERISTIC)).decode("utf-8")
+            # self.fw_version = (await client.read_gatt_char(FIRMWARE_REVISION_STRING_CHARACTERISTIC)).decode("utf-8")
+            # self.sw_version = (await client.read_gatt_char(SOFTWARE_REVISION_STRING_CHARACTERISTIC)).decode("utf-8")
 
             self.motor_status = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC)
             self.floor_light = await client.read_gatt_char(FLOOR_LIGHT_CHARACTERISTIC)
