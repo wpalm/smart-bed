@@ -31,8 +31,8 @@ async def async_setup_entry(hass, entry) -> bool:
         raise ConfigEntryNotReady(f"Could not get device data: {e}")
 
     # Register device in device registry
-    dr = await device_registry.async_get(hass)
-    dr.async_get_or_create(
+    dr = await device_registry.async_get_registry()
+    await dr.async_get_or_create(
         config_entry_id=entry.entry_id,
         # TODO: Add more device metadata, connections={(dr.CONNECTION_NETWORK_MAC, config.mac)},
         identifiers={(DOMAIN, smart_bed.identifier)},
