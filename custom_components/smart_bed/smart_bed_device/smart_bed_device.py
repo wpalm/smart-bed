@@ -3,7 +3,7 @@
 from __future__ import annotations
 import asyncio
 from logging import Logger
-from .const import (
+from const import (
     MANUFACTURER_NAME_STRING_CHARACTERISTIC,
     MODEL_NUMBER_STRING_CHARACTERISTIC,
     FIRMWARE_REVISION_STRING_CHARACTERISTIC,
@@ -50,32 +50,47 @@ class SmartBedDevice:
         super().__init__()
         self.logger = logger
         self.__ble_device = ble_device
+        self.name = self.__ble_device.name
+        self.address = self.__ble_device.address
+        self.identifier = self.__ble_device.address
 
+    async def __connect(self):
+        return await establish_connection(BleakClient, self.__ble_device, self.address)
+    
+    async def __disconnect(self, client):
+        await client.disconnect()
 
     async def update_device_data(self):
         """Update the device data."""
-        async with await establish_connection(BleakClient, self.__ble_device, self.__ble_device.address) as client:
-            self.name = self.__ble_device.name
-            self.address = self.__ble_device.address
-            self.identifier = self.__ble_device.address
+        client = await self.__connect()
 
-            self.manufacturer = (await client.read_gatt_char(MANUFACTURER_NAME_STRING_CHARACTERISTIC)).decode("utf-8")
-            self.model = (await client.read_gatt_char(MODEL_NUMBER_STRING_CHARACTERISTIC)).decode("utf-8")
-            self.fw_version = (await client.read_gatt_char(FIRMWARE_REVISION_STRING_CHARACTERISTIC)).decode("utf-8")
-            self.sw_version = (await client.read_gatt_char(SOFTWARE_REVISION_STRING_CHARACTERISTIC)).decode("utf-8")
+        # Pair with the device
+        # await client.pair()
 
-            self.motor_status = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC)
-            self.floor_light = await client.read_gatt_char(FLOOR_LIGHT_CHARACTERISTIC)
-            self.chip_temp = await client.read_gatt_char(CHIP_TEMP_CHARACTERISTIC)
-    
+        if not client.is_connected:
+            raise Exception("Device is not connected")
+
+        self.manufacturer = (await client.read_gatt_char(MANUFACTURER_NAME_STRING_CHARACTERISTIC)).decode("utf-8")
+        self.model = (await client.read_gatt_char(MODEL_NUMBER_STRING_CHARACTERISTIC)).decode("utf-8")
+        self.fw_version = (await client.read_gatt_char(FIRMWARE_REVISION_STRING_CHARACTERISTIC)).decode("utf-8")
+        self.sw_version = (await client.read_gatt_char(SOFTWARE_REVISION_STRING_CHARACTERISTIC)).decode("utf-8")
+
+        self.motor_status = await client.read_gatt_char(MOTOR_STATUS_CHARACTERISTIC)
+        self.floor_light = await client.read_gatt_char(FLOOR_LIGHT_CHARACTERISTIC)
+        self.chip_temp = await client.read_gatt_char(CHIP_TEMP_CHARACTERISTIC)
+
+        await self.__disconnect(client)
     
     async def __send_motor_command(self, command, duration):
-        async with BleakClient(self.__ble_device) as client:
-            delay: float = 0.1
-            repeat: int = int(duration / delay)
-            for _ in range(repeat):
-                await client.write_gatt_char(MOTOR_COMMAND_CHARACTERISTIC, data=command)
-                await asyncio.sleep(delay)
+        client = await self.__connect()
+
+        delay: float = 0.1
+        repeat: int = int(duration / delay)
+        for _ in range(repeat):
+            await client.write_gatt_char(MOTOR_COMMAND_CHARACTERISTIC, data=command)
+            await asyncio.sleep(delay)
+
+        await self.__disconnect(client)
 
 
     async def down(self, duration=0.2, max=False):
