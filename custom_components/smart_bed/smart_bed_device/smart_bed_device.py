@@ -3,7 +3,7 @@
 from __future__ import annotations
 import asyncio
 from logging import Logger
-from const import (
+from .const import (
     MANUFACTURER_NAME_STRING_CHARACTERISTIC,
     MODEL_NUMBER_STRING_CHARACTERISTIC,
     FIRMWARE_REVISION_STRING_CHARACTERISTIC,
